@@ -1,7 +1,4 @@
-// app/api/auth/[...nextauth]/auth.ts
-
 import { AuthOptions } from "next-auth";
-import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 
 const users = [
@@ -15,10 +12,6 @@ const users = [
 
 export const authOptions: AuthOptions = {
   providers: [
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID ?? "",
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
-    }),
     CredentialsProvider({
       name: "Credentials",
       credentials: {
