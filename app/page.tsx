@@ -19,7 +19,7 @@ export default function Home() {
         />
         <div className="relative z-10 container mx-auto px-4">
           <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
-            Discover Premium Products
+            Discover Premium to your life and home
           </h1>
           <p className="text-xl text-white mb-8 max-w-2xl mx-auto">
             Shop our curated collection of high-quality products designed to enhance your lifestyle

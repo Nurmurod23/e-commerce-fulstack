@@ -14,7 +14,6 @@ export default function CheckoutPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, this would handle payment processing
     toast.success("Order placed successfully!");
     clearCart();
     router.push("/");
