@@ -26,9 +26,7 @@ export const authOptions: AuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
-        
         const user = users.find(user => user.email === credentials.email);
-        
         if (user && user.password === credentials.password) {
           return {
             id: user.id,
