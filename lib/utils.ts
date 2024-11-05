@@ -12,6 +12,7 @@ export function formatPrice(price: number) {
   }).format(price);
 }
 
+// Sample product data
 export const products = [
   {
     id: "1",

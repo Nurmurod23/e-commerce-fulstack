@@ -1,7 +1,22 @@
-import { AuthOptions } from "next-auth";
+import { AuthOptions, DefaultSession } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 
-const users = [
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  password: string;
+}
+
+declare module "next-auth" {
+  interface Session {
+    user: {
+      id: string;
+    } & DefaultSession["user"];
+  }
+}
+
+const users: User[] = [
   {
     id: "1",
     name: "John Doe",

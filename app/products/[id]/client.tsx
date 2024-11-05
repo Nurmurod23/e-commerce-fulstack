@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/components/cart-provider";
+import { useAuth } from "@/hooks/use-auth";
+import { useRouter } from "next/navigation";
 import {
   Select,
   SelectContent,
@@ -21,8 +23,15 @@ interface ProductClientProps {
 export default function ProductClient({ id, name, price, image }: ProductClientProps) {
   const [quantity, setQuantity] = useState("1");
   const { addItem } = useCart();
+  const { user } = useAuth();
+  const router = useRouter();
 
   const handleAddToCart = () => {
+    if (!user) {
+      router.push('/auth/signin');
+      return;
+    }
+
     addItem({
       id,
       name,
@@ -47,7 +56,7 @@ export default function ProductClient({ id, name, price, image }: ProductClientP
         </SelectContent>
       </Select>
       <Button size="lg" onClick={handleAddToCart}>
-        Add to Cart
+        {user ? 'Add to Cart' : 'Sign in to Purchase'}
       </Button>
     </div>
   );

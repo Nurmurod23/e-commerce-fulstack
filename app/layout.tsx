@@ -6,6 +6,7 @@ import { Toaster } from '@/components/ui/sonner';
 import Header from '@/components/header';
 import { CartProvider } from '@/components/cart-provider';
 import { AuthProvider } from '@/components/auth-provider';
+import { ApolloWrapper } from '@/components/apollo-wrapper';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -28,15 +29,17 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <AuthProvider>
-            <CartProvider>
-              <div className="min-h-screen bg-background">
-                <Header />
-                <main>{children}</main>
-                <Toaster />
-              </div>
-            </CartProvider>
-          </AuthProvider>
+          <ApolloWrapper>
+            <AuthProvider>
+              <CartProvider>
+                <div className="min-h-screen bg-background">
+                  <Header />
+                  <main>{children}</main>
+                  <Toaster />
+                </div>
+              </CartProvider>
+            </AuthProvider>
+          </ApolloWrapper>
         </ThemeProvider>
       </body>
     </html>

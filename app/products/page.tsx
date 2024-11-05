@@ -14,12 +14,16 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { useCart } from "@/components/cart-provider";
+import { useAuth } from "@/hooks/use-auth";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 export default function ProductsPage() {
   const [category, setCategory] = useState("All");
   const [search, setSearch] = useState("");
   const { addItem } = useCart();
+  const { user } = useAuth();
+  const router = useRouter();
 
   const filteredProducts = products.filter(
     (product) =>
@@ -28,6 +32,16 @@ export default function ProductsPage() {
   );
 
   const handleAddToCart = (product: typeof products[0]) => {
+    if (!user) {
+      toast.error('Please sign in to add items to cart', {
+        action: {
+          label: 'Sign In',
+          onClick: () => router.push('/auth/signin'),
+        },
+      });
+      return;
+    }
+
     addItem({
       id: product.id,
       name: product.name,
@@ -82,7 +96,7 @@ export default function ProductsPage() {
               onClick={() => handleAddToCart(product)}
               className="w-full"
             >
-              Add to Cart
+              {user ? 'Add to Cart' : 'Sign in to Purchase'}
             </Button>
           </div>
         ))}

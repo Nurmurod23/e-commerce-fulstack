@@ -1,7 +1,44 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { gql, useMutation, useQuery } from '@apollo/client';
 import { toast } from 'sonner';
+
+const SIGN_UP = gql`
+  mutation SignUp($input: SignUpInput!) {
+    signUp(input: $input) {
+      token
+      user {
+        id
+        name
+        email
+      }
+    }
+  }
+`;
+
+const SIGN_IN = gql`
+  mutation SignIn($input: SignInInput!) {
+    signIn(input: $input) {
+      token
+      user {
+        id
+        name
+        email
+      }
+    }
+  }
+`;
+
+const GET_ME = gql`
+  query Me {
+    me {
+      id
+      name
+      email
+    }
+  }
+`;
 
 interface User {
   id: string;
@@ -25,89 +62,80 @@ export const AuthContext = createContext<AuthContextType>({
   loading: true,
 });
 
-// In a real app, this would be your backend storage
-const USERS_STORAGE_KEY = 'auth_users';
-const SESSION_KEY = 'auth_session';
-
-interface StoredUser extends User {
-  password: string;
-}
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Load stored users or initialize with default user
-  const getStoredUsers = (): StoredUser[] => {
-    const stored = localStorage.getItem(USERS_STORAGE_KEY);
-    if (!stored) {
-      const defaultUser: StoredUser = {
-        id: "1",
-        name: "John Doe",
-        email: "john@example.com",
-        password: "password123"
-      };
-      localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify([defaultUser]));
-      return [defaultUser];
-    }
-    return JSON.parse(stored);
-  };
+  const { refetch } = useQuery(GET_ME, {
+    skip: typeof window === 'undefined',
+    onCompleted: (data) => {
+      if (data?.me) {
+        setUser(data.me);
+      }
+      setLoading(false);
+    },
+    onError: () => {
+      setLoading(false);
+    },
+  });
 
-  // Initialize session from storage
+  const [signUpMutation] = useMutation(SIGN_UP);
+  const [signInMutation] = useMutation(SIGN_IN);
+
   useEffect(() => {
-    const storedSession = localStorage.getItem(SESSION_KEY);
-    if (storedSession) {
-      const sessionUser = JSON.parse(storedSession);
-      setUser(sessionUser);
+    const token = localStorage.getItem('auth_token');
+    if (token) {
+      refetch();
+    } else {
+      setLoading(false);
     }
-    setLoading(false);
-  }, []);
+  }, [refetch]);
 
   const signIn = async (email: string, password: string) => {
-    const users = getStoredUsers();
-    const foundUser = users.find(u => u.email === email && u.password === password);
-    
-    if (foundUser) {
-      const { password: _, ...userWithoutPassword } = foundUser;
-      setUser(userWithoutPassword);
-      localStorage.setItem(SESSION_KEY, JSON.stringify(userWithoutPassword));
-      toast.success('Signed in successfully');
-      return true;
+    try {
+      const { data } = await signInMutation({
+        variables: {
+          input: { email, password },
+        },
+      });
+
+      if (data.signIn.token) {
+        localStorage.setItem('auth_token', data.signIn.token);
+        setUser(data.signIn.user);
+        toast.success('Signed in successfully');
+        return true;
+      }
+      return false;
+    } catch (error) {
+      toast.error('Invalid credentials');
+      return false;
     }
-    
-    toast.error('Invalid credentials');
-    return false;
   };
 
   const signUp = async (name: string, email: string, password: string) => {
-    const users = getStoredUsers();
-    
-    if (users.some(u => u.email === email)) {
-      toast.error('Email already exists');
+    try {
+      const { data } = await signUpMutation({
+        variables: {
+          input: { name, email, password },
+        },
+      });
+
+      if (data.signUp.token) {
+        localStorage.setItem('auth_token', data.signUp.token);
+        setUser(data.signUp.user);
+        toast.success('Account created successfully');
+        return true;
+      }
+      return false;
+    } catch (error) {
+      toast.error('Failed to create account');
       return false;
     }
-
-    const newUser: StoredUser = {
-      id: String(users.length + 1),
-      name,
-      email,
-      password
-    };
-
-    users.push(newUser);
-    localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
-
-    const { password: _, ...userWithoutPassword } = newUser;
-    setUser(userWithoutPassword);
-    localStorage.setItem(SESSION_KEY, JSON.stringify(userWithoutPassword));
-    
-    toast.success('Account created successfully');
-    return true;
   };
 
   const signOut = () => {
+    localStorage.removeItem('auth_token');
     setUser(null);
-    localStorage.removeItem(SESSION_KEY);
     toast.success('Signed out successfully');
   };
 
